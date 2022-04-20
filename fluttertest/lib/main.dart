@@ -26,17 +26,31 @@ class MapSampleState extends State<MapSample> {
   final Completer<GoogleMapController> _controller = Completer();
   final TextEditingController _searchController = TextEditingController();
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
+  Set<Marker> _markers = Set<Marker>();
+
+  static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
 
-  static const Marker _kGooglePlexMarker = Marker(
-    markerId: MarkerId('_kGooglePlex'),
-    infoWindow: InfoWindow(title:'Google Plex'),
-    icon: BitmapDescriptor.defaultMarker,
-    position: LatLng(37.42796133580664, -122.085749655962),
-  );
+  @override
+  void initState() {
+    super.initState();
+
+    _setMarker(LatLng(37.42796133580664, -122.085749655962));
+
+  }
+
+  void _setMarker(LatLng point) {
+    setState(() {
+      _markers.add(
+        Marker(
+          markerId: MarkerId('marker'),
+          position: point,
+        )
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +84,7 @@ class MapSampleState extends State<MapSample> {
           Expanded(
             child: GoogleMap(
               mapType: MapType.normal,
-              markers: {
-                _kGooglePlexMarker,
-                },
+              markers: _markers,
               initialCameraPosition: _kGooglePlex,
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
@@ -81,11 +93,6 @@ class MapSampleState extends State<MapSample> {
           ),
         ],
       ),
-        // floatingActionButton: FloatingActionButton.extended(
-        //   onPressed: _goToTheLake,
-        //   label: Text('To the lake!'),
-        //   icon: Icon(Icons.directions_boat),
-        // ),
     );
   }
 
@@ -99,12 +106,6 @@ class MapSampleState extends State<MapSample> {
         CameraPosition(target: LatLng(lat, lng), zoom: 12),
       ),
     );
+    _setMarker(LatLng(lat,lng));
   }
-
-
-//   Future<void> _goToTheLake() async {
-//     final GoogleMapController controller = await _controller.future;
-//     controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-//   }
-
 }
