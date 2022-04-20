@@ -23,39 +23,26 @@ class MapSample extends StatefulWidget {
 }
 
 class MapSampleState extends State<MapSample> {
-  Completer<GoogleMapController> _controller = Completer();
-  TextEditingController _searchController = TextEditingController();
+  final Completer<GoogleMapController> _controller = Completer();
+  final TextEditingController _searchController = TextEditingController();
 
-  static final CameraPosition _kGooglePlex = CameraPosition(
+  static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
 
-  static final Marker _kGooglePlexMarker = Marker(
+  static const Marker _kGooglePlexMarker = Marker(
     markerId: MarkerId('_kGooglePlex'),
     infoWindow: InfoWindow(title:'Google Plex'),
     icon: BitmapDescriptor.defaultMarker,
     position: LatLng(37.42796133580664, -122.085749655962),
   );
 
-  static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
-
-  static final Marker _kLakePlexMarker = Marker(
-    markerId: MarkerId('_kLakePlexMarker'),
-    infoWindow: InfoWindow(title:'Lake'),
-    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-    position: LatLng(37.43296265331129, -122.08832357078792),
-  );
-
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
+    return Scaffold(
       appBar: AppBar(
-        title: Text('Google Maps'),
+        title: const Text('Google Maps'),
       ),
       body: Column(
         children: [
@@ -65,16 +52,18 @@ class MapSampleState extends State<MapSample> {
                 child: TextFormField(
                 controller: _searchController,
                 textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(hintText: 'Search by City'),
+                decoration: const InputDecoration(hintText: 'Search by City'),
                 onChanged: (value) {
                   print(value);
                 }
               )),
               IconButton(
-                onPressed: () {
-                  LocationService().getPlaceId(_searchController.text);
+                onPressed: () async {
+                  var place = 
+                      await LocationService().getPlace(_searchController.text);
+                  _goToPlace(place);
                 },
-                icon: Icon(Icons.search),
+                icon: const Icon(Icons.search),
               ),
             ],
           ),
@@ -83,7 +72,6 @@ class MapSampleState extends State<MapSample> {
               mapType: MapType.normal,
               markers: {
                 _kGooglePlexMarker,
-                //_kLakePlexMarker,
                 },
               initialCameraPosition: _kGooglePlex,
               onMapCreated: (GoogleMapController controller) {
@@ -101,9 +89,22 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
+  Future<void> _goToPlace(List<double> place) async {
+    final double lat = place[0];
+    final double lng = place[1];
 
-  Future<void> _goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+    controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: LatLng(lat, lng), zoom: 12),
+      ),
+    );
   }
+
+
+//   Future<void> _goToTheLake() async {
+//     final GoogleMapController controller = await _controller.future;
+//     controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+//   }
+
 }
